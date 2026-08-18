@@ -5,6 +5,11 @@ dataset/*
 .venv/
 .ipynb_checkpoints/
 .cache/
+__pycache__/
 
 # Internals
 ddpm_cifar10_implementation_report.html
+
+# Training artifacts
+checkpoints/
+samples/
