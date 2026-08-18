@@ -50,7 +50,7 @@ jupyter lab
 ## Team
 
 - Branko Grbić
-- Bogdan Stojadinovic
+- Bogdan Stojadinović (dropped off the course)
 
 ## Literature
 
