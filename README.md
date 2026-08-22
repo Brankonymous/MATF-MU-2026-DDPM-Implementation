@@ -34,9 +34,8 @@ For training, images are mapped to `[-1, 1]` (`Normalize(0.5)`) and a random hor
 2. [`02_diffusion.py`](02_diffusion.py) — `β_t` schedule, `q_sample`, `L_simple`, reverse sampler.
 3. [`03_forward_noising.ipynb`](03_forward_noising.ipynb) — check the schedule and the noising visualization.
 4. [`04_unet.py`](04_unet.py) — time-conditioned U-Net.
-5. [`05_check_unet.ipynb`](05_check_unet.ipynb) — check shapes, gradients, and parameter count.
-6. [`06_train.ipynb`](06_train.ipynb) — `L_simple`, one-batch overfit, AMP / EMA / checkpoints. The long run is behind `RUN_PRODUCTION_TRAINING`.
-7. [`07_sample_eval.ipynb`](07_sample_eval.ipynb) — demo: sampler, loss curve, trajectory, sample grid, raw vs EMA.
+5. [`05_train.ipynb`](06_train.ipynb) — `L_simple`, one-batch overfit, AMP / EMA / checkpoints. The long run is behind `RUN_PRODUCTION_TRAINING`.
+6. [`06_sample_eval.ipynb`](07_sample_eval.ipynb) — demo: sampler, grids, and held-out `L_simple` on the CIFAR-10 test set (not FID).
 
 ## Environment
 
