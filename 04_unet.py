@@ -1,7 +1,4 @@
-"""Time-conditioned U-Net for DDPM.
-
-This is `04_unet.py`, used by `05_check_unet.ipynb` and later notebooks.
-"""
+"""Time-conditioned U-Net for DDPM training and sampling."""
 
 from __future__ import annotations
 

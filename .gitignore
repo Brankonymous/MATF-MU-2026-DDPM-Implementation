@@ -13,3 +13,8 @@ ddpm_cifar10_implementation_report.html
 # Training artifacts
 checkpoints/
 samples/
+results/*
+!results/samples_*.png
+!results/training_loss_*.png
+!results/trajectory_*.png
+!results/metrics_*.txt
