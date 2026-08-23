@@ -96,6 +96,7 @@ def p_sample(
     x_t: torch.Tensor,
     timesteps: torch.Tensor,
     schedule: DiffusionSchedule,
+    generator: torch.Generator | None = None,
 ) -> torch.Tensor:
     # Ho et al. 2020, Algorithm 2. Index 0 is the last reverse step and adds no noise.
     predicted_noise = model(x_t, timesteps)
@@ -104,7 +105,7 @@ def p_sample(
     alpha_bar_t = extract(schedule.alpha_bars, timesteps, x_t.shape)
     mean = (x_t - beta_t * predicted_noise / torch.sqrt(1.0 - alpha_bar_t)) / torch.sqrt(alpha_t)
     variance = extract(schedule.posterior_variance, timesteps, x_t.shape)
-    noise = torch.randn_like(x_t)
+    noise = torch.randn(x_t.shape, device=x_t.device, dtype=x_t.dtype, generator=generator)
     nonzero_mask = (timesteps != 0).float().view(-1, 1, 1, 1)
     return mean + nonzero_mask * torch.sqrt(variance) * noise
 
@@ -139,7 +140,7 @@ def sample_loop(
         steps = tqdm(steps, total=num_steps, desc="reverse")
     for step in steps:
         timesteps = torch.full((batch_size,), step, device=device, dtype=torch.long)
-        images = p_sample(model, images, timesteps, schedule)
+        images = p_sample(model, images, timesteps, schedule, generator)
         if step in snapshot_steps:
             snapshots[step] = images.detach().cpu()
     return images, snapshots

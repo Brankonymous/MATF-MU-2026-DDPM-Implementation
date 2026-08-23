@@ -13,11 +13,11 @@ This repository implements an unconditional Denoising Diffusion Probabilistic Mo
 - Algorithm 2 reverse sampler,
 - held-out noise-prediction MSE and FID evaluation.
 
-The final training budget is 100,000 optimizer steps, below the paper's 800,000. FID-5k is therefore reported only as this project's result and is not compared with the paper's 50,000-sample FID.
+The final training budget is 100,000 optimizer steps, below the paper's 800,000. FID-50k uses the paper's sample count and reference split, but the shorter training budget remains an important difference.
 
 ## Data
 
-[CIFAR-10](https://www.cs.toronto.edu/~kriz/cifar.html) has 50,000 training and 10,000 test RGB images at 32×32. Every class is balanced. The unconditional model ignores labels, trains only on the official training split, and uses the test split only for final loss and FID evaluation.
+[CIFAR-10](https://www.cs.toronto.edu/~kriz/cifar.html) has 50,000 training and 10,000 test RGB images at 32×32. Every class is balanced. The unconditional model ignores labels and trains on the official training split. Held-out loss uses the test split; FID uses the training split as in the paper.
 
 Training applies random horizontal flips and maps pixels to `[-1, 1]`. [`01_dataset.ipynb`](01_dataset.ipynb) contains the dataset analysis.
 
@@ -53,10 +53,10 @@ Then train to 100,000 optimizer steps and run the final evaluation:
 
 ```bash
 DDPM_RUN_TRAINING=1 jupyter execute 05_train.ipynb --inplace
-jupyter execute 06_sample_eval.ipynb --inplace
+DDPM_SAMPLE_BATCH=128 jupyter execute 06_sample_eval.ipynb --inplace
 ```
 
-If physical batch 32 does not fit, add `DDPM_BATCH_SIZE=16`; accumulation changes automatically from four to eight steps, preserving effective batch 128.
+`DDPM_BATCH_SIZE` may be any positive divisor of 128. Gradient accumulation adjusts automatically to preserve effective batch 128.
 
 ## Results
 
@@ -66,7 +66,7 @@ If physical batch 32 does not fit, add `DDPM_BATCH_SIZE=16`; accumulation change
 - Training wall time and throughput: **PLEEASE UPD THIS**.
 - Training `L_simple`: **PLEEASE UPD THIS**.
 - Held-out `L_simple`, overall and by timestep quarter: **PLEEASE UPD THIS**.
-- FID-5k: **PLEEASE UPD THIS**.
+- FID-50k: **PLEEASE UPD THIS**.
 - Sample quality and limitations: **PLEEASE UPD THIS**.
 
 Large checkpoints are gitignored. Training writes a resumable `*_latest.pt` file and a smaller inference-only `*_ema.pt` file. After the production run, record its size and checksum with:
