@@ -63,11 +63,11 @@ DDPM_SAMPLE_BATCH=128 jupyter execute 06_sample_eval.ipynb --inplace
 - Hardware: NVIDIA RTX 4070 SUPER 12 GB.
 - Environment: Python 3.12.6, PyTorch 2.13.0+cu130, torchvision 0.28.0+cu130.
 - U-Net parameters: 35,746,307 (35.75M).
-- Training wall time and throughput: **PLEEASE UPD THIS**.
-- Training `L_simple`: **PLEEASE UPD THIS**.
-- Held-out `L_simple`, overall and by timestep quarter: **PLEEASE UPD THIS**.
-- FID-50k: **PLEEASE UPD THIS**.
-- Sample quality and limitations: **PLEEASE UPD THIS**.
+- Training wall time: approximately 7.4 hours across resumed segments; final throughput was 4.02 optimizer steps/s.
+- Training `L_simple`: 0.9987 → 0.0269.
+- Held-out `L_simple`: 0.0286 overall; 0.0941, 0.0172, 0.0032, and 0.0002 by timestep quarter.
+- FID-50k: 8.24.
+- Sample quality: diverse, recognizable CIFAR-10 objects, with some blurred or ambiguous details at 32×32.
 
 Large checkpoints are gitignored. Training writes a resumable `*_latest.pt` file and a smaller inference-only `*_ema.pt` file. After the production run, record its size and checksum with:
 
@@ -78,7 +78,9 @@ shasum -a 256 checkpoints/ddpm_cifar10_production_ema.pt
 
 To evaluate a downloaded artifact, set `DDPM_CHECKPOINT=/path/to/model.pt` when running `06_sample_eval.ipynb`; the architecture config is read from the checkpoint.
 
-Model download: **PLEEASE UPD THIS**.
+Downloads (SwissTransfer links expire on 23 September 2026):
+
+- [EMA inference checkpoint, 137.3 MiB](https://www.swisstransfer.com/dl/01a0353f-c47b-7008-aa5a-d2406c3d0c6b)
 
 ## Team
 

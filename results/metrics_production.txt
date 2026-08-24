@@ -1,0 +1,5 @@
+step=100000
+heldout_l_simple=0.028644
+fid-50k=8.2440
+checkpoint_bytes=144000599
+checkpoint_sha256=d715162ac75fa59e51c877653fb2579e86ffe5fc3270f75a34d21ddfacb110fa
