@@ -30,12 +30,16 @@ class DiffusionSchedule:
         return DiffusionSchedule(**moved)
 
 
+# Build all coefficients for the linear diffusion schedule.
 def build_schedule(num_steps: int, beta_start: float, beta_end: float) -> DiffusionSchedule:
+    # Gradually increase the noise added at each forward step.
     betas = torch.linspace(beta_start, beta_end, num_steps, dtype=torch.float32)
     alphas = 1.0 - betas
+    # The cumulative product measures how much original signal remains by step t.
     alpha_bars = torch.cumprod(alphas, dim=0)
     # Paper ᾱ_{t-1} is 1 at the first step because no previous product exists.
     alpha_bars_prev = torch.cat([torch.ones(1, dtype=alphas.dtype), alpha_bars[:-1]])
+    # Controls how much random noise is added while moving from xₜ to the slightly cleaner xₜ₋₁.
     posterior_variance = betas * (1.0 - alpha_bars_prev) / (1.0 - alpha_bars)
     return DiffusionSchedule(
         betas=betas,
@@ -49,11 +53,13 @@ def build_schedule(num_steps: int, beta_start: float, beta_end: float) -> Diffus
     )
 
 
+# Select and reshape one timestep coefficient per image.
 def extract(coefficients: torch.Tensor, timesteps: torch.Tensor, shape: tuple) -> torch.Tensor:
     values = coefficients.to(timesteps.device).gather(0, timesteps.long())
     return values.reshape(timesteps.shape[0], *([1] * (len(shape) - 1)))
 
 
+# Add noise to clean images at chosen timesteps.
 def q_sample(
     x0: torch.Tensor,
     timesteps: torch.Tensor,
@@ -62,16 +68,19 @@ def q_sample(
 ) -> torch.Tensor:
     if noise is None:
         noise = torch.randn_like(x0)
+    # The closed form reaches any timestep without simulating earlier steps.
     signal = extract(schedule.sqrt_alpha_bars, timesteps, x0.shape)
     noise_scale = extract(schedule.sqrt_one_minus_alpha_bars, timesteps, x0.shape)
     return signal * x0 + noise_scale * noise
 
 
+# Convert normalized model images to the display range.
 def to_display(images: torch.Tensor) -> torch.Tensor:
     # Inverse of Normalize(0.5): map model space [-1, 1] to matplotlib [0, 1].
     return (images.clamp(-1, 1) + 1) / 2
 
 
+# Measure how accurately the model predicts the added noise.
 def simple_loss(
     model: nn.Module,
     images: torch.Tensor,
@@ -82,6 +91,7 @@ def simple_loss(
     # Ho et al. 2020, Algorithm 1 / L_simple: predict the noise that formed x_t.
     batch = images.size(0)
     num_steps = int(schedule.betas.shape[0])
+    # Random timesteps teach the model to handle every noise level.
     if timesteps is None:
         timesteps = torch.randint(0, num_steps, (batch,), device=images.device)
     if noise is None:
@@ -90,6 +100,7 @@ def simple_loss(
     return F.mse_loss(model(xt, timesteps), noise)
 
 
+# Perform one reverse-diffusion step without tracking gradients.
 @torch.inference_mode()
 def p_sample(
     model: nn.Module,
@@ -99,17 +110,21 @@ def p_sample(
     generator: torch.Generator | None = None,
 ) -> torch.Tensor:
     # Ho et al. 2020, Algorithm 2. Index 0 is the last reverse step and adds no noise.
+    # The model estimates which noise component should be removed from x_t.
     predicted_noise = model(x_t, timesteps)
     beta_t = extract(schedule.betas, timesteps, x_t.shape)
     alpha_t = extract(schedule.alphas, timesteps, x_t.shape)
     alpha_bar_t = extract(schedule.alpha_bars, timesteps, x_t.shape)
+    # Compute the center of the predicted distribution for x_{t-1}.
     mean = (x_t - beta_t * predicted_noise / torch.sqrt(1.0 - alpha_bar_t)) / torch.sqrt(alpha_t)
     variance = extract(schedule.posterior_variance, timesteps, x_t.shape)
     noise = torch.randn(x_t.shape, device=x_t.device, dtype=x_t.dtype, generator=generator)
+    # Do not corrupt the final image by adding noise after the last step.
     nonzero_mask = (timesteps != 0).float().view(-1, 1, 1, 1)
     return mean + nonzero_mask * torch.sqrt(variance) * noise
 
 
+# Generate images by repeatedly applying reverse diffusion.
 @torch.inference_mode()
 def sample_loop(
     model: nn.Module,
@@ -122,6 +137,7 @@ def sample_loop(
     generator: torch.Generator | None = None,
     show_progress: bool | None = None,
 ) -> tuple[torch.Tensor, dict[int, torch.Tensor]]:
+    # Generation starts from pure Gaussian noise.
     images = torch.randn(
         batch_size,
         channels,
@@ -138,6 +154,7 @@ def sample_loop(
     steps = reversed(range(num_steps))
     if show_progress:
         steps = tqdm(steps, total=num_steps, desc="reverse")
+    # Reverse diffusion is sequential, so every timestep depends on the previous one.
     for step in steps:
         timesteps = torch.full((batch_size,), step, device=device, dtype=torch.long)
         images = p_sample(model, images, timesteps, schedule, generator)

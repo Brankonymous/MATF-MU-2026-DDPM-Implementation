@@ -20,6 +20,7 @@ class UNetConfig(Protocol):
     dropout: float
 
 
+# Use batch-size-independent normalization for stable diffusion training.
 def group_norm(channels: int) -> nn.GroupNorm:
     # Prefer 32 groups on the paper-width model; fall back until the count divides.
     for groups in (32, 16, 8, 4, 2, 1):
@@ -28,6 +29,7 @@ def group_norm(channels: int) -> nn.GroupNorm:
     raise ValueError(f"no GroupNorm groups divide {channels}")
 
 
+# Encode scalar timesteps as features at several frequencies.
 class SinusoidalTimeEmbedding(nn.Module):
     def __init__(self, dim: int):
         super().__init__()
@@ -47,6 +49,7 @@ class SinusoidalTimeEmbedding(nn.Module):
         return embedding
 
 
+# Learn a timestep-conditioned residual while preserving a shortcut path.
 class ResidualBlock(nn.Module):
     def __init__(self, in_channels: int, out_channels: int, time_dim: int, dropout: float):
         super().__init__()
@@ -72,6 +75,7 @@ class ResidualBlock(nn.Module):
         return h + self.skip(x)
 
 
+# Let distant image locations exchange information through self-attention.
 class AttentionBlock(nn.Module):
     def __init__(self, channels: int, num_heads: int = 4):
         super().__init__()
@@ -95,6 +99,7 @@ class AttentionBlock(nn.Module):
         return x + self.proj(mixed)
 
 
+# Halve spatial resolution so deeper layers see a wider image context.
 class Downsample(nn.Module):
     def __init__(self, channels: int):
         super().__init__()
@@ -104,6 +109,7 @@ class Downsample(nn.Module):
         return self.conv(x)
 
 
+# Double spatial resolution while returning toward the original image size.
 class Upsample(nn.Module):
     def __init__(self, channels: int):
         super().__init__()
@@ -113,6 +119,7 @@ class Upsample(nn.Module):
         return self.conv(F.interpolate(x, scale_factor=2.0, mode="nearest"))
 
 
+# Combine a time-conditioned residual block with optional attention.
 class TimeResBlock(nn.Module):
     def __init__(
         self,
@@ -133,6 +140,7 @@ class TimeResBlock(nn.Module):
         return x
 
 
+# Predict image-shaped noise with a symmetric encoder-decoder.
 class UNet(nn.Module):
     def __init__(self, config: UNetConfig):
         super().__init__()
