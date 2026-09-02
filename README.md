@@ -68,6 +68,8 @@ $env:DDPM_SAMPLE_BATCH = "128"
 - Branko Grbić — final implementation and current repository history.
 - Bogdan Stojadinović — dropped off the course.
 
-## Reference
+## References
 
-Ho, J., Jain, A., and Abbeel, P. (2020). [Denoising Diffusion Probabilistic Models](https://arxiv.org/abs/2006.11239).
+1. Ho, J., Jain, A., and Abbeel, P. (2020). [Denoising Diffusion Probabilistic Models](https://arxiv.org/abs/2006.11239).
+2. Ronneberger, O., Fischer, P., and Brox, T. (2015). [U-Net: Convolutional Networks for Biomedical Image Segmentation](https://arxiv.org/abs/1505.04597).
+3. Krizhevsky, A. (2009). [Learning Multiple Layers of Features from Tiny Images](https://www.cs.toronto.edu/~kriz/learning-features-2009-TR.pdf).
